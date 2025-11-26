@@ -12,6 +12,7 @@ import EquipmentForm from '@/pages/EquipmentForm';
 import LoanList from '@/pages/LoanList';
 import LoanForm from '@/pages/LoanForm';
 import EquipmentHistory from '@/pages/EquipmentHistory';
+import PublicLoanRequest from '@/pages/PublicLoanRequest';
 import Layout from '@/components/Layout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
