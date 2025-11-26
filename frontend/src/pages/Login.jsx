@@ -86,6 +86,17 @@ const Login = () => {
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
+
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">ou</p>
+              <a
+                href="/solicitar-emprestimo"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-block mt-2"
+                data-testid="public-loan-link"
+              >
+                Solicitar Empréstimo de Equipamento →
+              </a>
+            </div>
           </form>
         </CardContent>
       </Card>
