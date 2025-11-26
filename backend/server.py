@@ -524,6 +524,56 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "overdue_loans": overdue_loans
     }
 
+# Public Routes (No authentication required)
+@api_router.get("/public/equipments/available", response_model=List[Equipment])
+async def get_available_equipments_public():
+    """Public endpoint to get available equipments for loan requests"""
+    equipments = await db.equipments.find(
+        {"status": "Disponível"},
+        {"_id": 0}
+    ).to_list(1000)
+    return equipments
+
+@api_router.post("/public/loan-request", response_model=Loan)
+async def create_public_loan_request(loan: LoanCreate):
+    """Public endpoint for users to request equipment loans"""
+    # Verify all equipments exist and are available
+    for patrimonio in loan.equipments:
+        equipment = await db.equipments.find_one({"numero_patrimonio": patrimonio})
+        if not equipment:
+            raise HTTPException(status_code=404, detail=f"Equipamento {patrimonio} não encontrado")
+        if equipment["status"] == "Emprestado":
+            raise HTTPException(status_code=400, detail=f"Equipamento {patrimonio} já está emprestado")
+    
+    loan_obj = Loan(**loan.model_dump())
+    await db.loans.insert_one(loan_obj.model_dump())
+    
+    # Update equipment status
+    for patrimonio in loan.equipments:
+        await db.equipments.update_one(
+            {"numero_patrimonio": patrimonio},
+            {"$set": {"status": "Emprestado", "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        equipment = await db.equipments.find_one({"numero_patrimonio": patrimonio})
+        await create_history_entry(
+            equipment["id"],
+            "loaned",
+            f"Emprestado para {loan.nome_solicitante} (Solicitação Pública)",
+            "Sistema - Solicitação Pública"
+        )
+    
+    # Create notification for admin users
+    admin_users = await db.users.find({"role": "admin"}, {"_id": 0}).to_list(100)
+    for admin in admin_users:
+        await create_notification(
+            admin["id"],
+            f"Nova solicitação de empréstimo: {loan.nome_solicitante} - {len(loan.equipments)} equipamento(s)",
+            "loan_created"
+        )
+    
+    return loan_obj
+
 app.include_router(api_router)
 
 app.add_middleware(
