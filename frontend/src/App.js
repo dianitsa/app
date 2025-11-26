@@ -86,6 +86,9 @@ function App() {
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
           
+          {/* Public Route - No authentication required */}
+          <Route path="/solicitar-emprestimo" element={<PublicLoanRequest />} />
+          
           <Route
             path="/"
             element={user ? <Layout /> : <Navigate to="/login" />}
