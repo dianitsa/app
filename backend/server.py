@@ -484,6 +484,116 @@ async def export_equipments(current_user: dict = Depends(get_current_user)):
         headers={"Content-Disposition": "attachment; filename=equipamentos.xlsx"}
     )
 
+@api_router.get("/export/equipments/template")
+async def export_equipment_template(current_user: dict = Depends(get_current_user)):
+    """Export an Excel template for equipment import"""
+    template_data = {
+        "numero_patrimonio": ["PAT-001", "PAT-002"],
+        "numero_serie": ["SN123456", "SN789012"],
+        "marca": ["Dell", "HP"],
+        "modelo": ["Latitude 5420", "EliteBook 840"],
+        "tipo_equipamento": ["Notebook", "Notebook"],
+        "departamento_atual": ["SEINTEC", "PROTOCOLO"],
+        "responsavel_atual": ["João Silva", "Maria Santos"],
+        "status": ["Disponível", "Disponível"]
+    }
+    
+    df = pd.DataFrame(template_data)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Equipamentos')
+    output.seek(0)
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=template_equipamentos.xlsx"}
+    )
+
+@api_router.post("/import/equipments")
+async def import_equipments(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Import equipments from Excel file"""
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Apenas arquivos Excel (.xlsx, .xls) são permitidos")
+    
+    try:
+        # Read Excel file
+        content = await file.read()
+        df = pd.read_excel(io.BytesIO(content))
+        
+        # Required columns
+        required_columns = [
+            "numero_patrimonio", "numero_serie", "marca", "modelo",
+            "tipo_equipamento", "departamento_atual", "status"
+        ]
+        
+        # Check if all required columns exist
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Colunas obrigatórias faltando: {', '.join(missing_columns)}"
+            )
+        
+        # Process each row
+        success_count = 0
+        error_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Check if patrimonio already exists
+                existing = await db.equipments.find_one({
+                    "numero_patrimonio": str(row["numero_patrimonio"])
+                })
+                
+                if existing:
+                    errors.append(f"Linha {index + 2}: Patrimônio {row['numero_patrimonio']} já existe")
+                    error_count += 1
+                    continue
+                
+                # Create equipment object
+                equipment_data = {
+                    "numero_patrimonio": str(row["numero_patrimonio"]),
+                    "numero_serie": str(row["numero_serie"]),
+                    "marca": str(row["marca"]),
+                    "modelo": str(row["modelo"]),
+                    "tipo_equipamento": str(row["tipo_equipamento"]),
+                    "departamento_atual": str(row["departamento_atual"]),
+                    "responsavel_atual": str(row.get("responsavel_atual", "")) if pd.notna(row.get("responsavel_atual")) else None,
+                    "status": str(row.get("status", "Disponível"))
+                }
+                
+                equipment_obj = Equipment(**equipment_data)
+                await db.equipments.insert_one(equipment_obj.model_dump())
+                
+                # Create history entry
+                await create_history_entry(
+                    equipment_obj.id,
+                    "created",
+                    f"Equipamento importado via Excel: {equipment_data['numero_patrimonio']}",
+                    current_user["username"]
+                )
+                
+                success_count += 1
+                
+            except Exception as e:
+                errors.append(f"Linha {index + 2}: {str(e)}")
+                error_count += 1
+        
+        return {
+            "message": "Importação concluída",
+            "success_count": success_count,
+            "error_count": error_count,
+            "errors": errors[:10] if errors else []  # Return first 10 errors
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao processar arquivo: {str(e)}")
+
 @api_router.get("/export/loans")
 async def export_loans(current_user: dict = Depends(get_current_user)):
     loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
