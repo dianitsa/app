@@ -22,7 +22,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, Edit, Trash2, History, FileDown } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Plus, Search, Edit, Trash2, History, FileDown, Upload, FileSpreadsheet } from 'lucide-react';
 
 const DEPARTAMENTOS = [
   'AUDITÓRIO', 'PROTOCOLO', 'SEVESC', 'SEGRE', 'ECC', 'SEPES',
