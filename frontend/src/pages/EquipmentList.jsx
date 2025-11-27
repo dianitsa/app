@@ -51,6 +51,10 @@ const EquipmentList = () => {
   const [filterDepartamento, setFilterDepartamento] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [deleteId, setDeleteId] = useState(null);
+  const [importDialog, setImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
