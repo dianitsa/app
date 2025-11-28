@@ -185,6 +185,10 @@ const EquipmentList = () => {
             <FileDown size={16} className="mr-2" />
             Exportar Excel
           </Button>
+          <Button variant="outline" onClick={() => setImportDialog(true)} data-testid="import-button">
+            <Upload size={16} className="mr-2" />
+            Importar Excel
+          </Button>
           <Link to="/equipments/new">
             <Button data-testid="add-equipment-btn">
               <Plus size={16} className="mr-2" />
