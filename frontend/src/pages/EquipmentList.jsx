@@ -107,6 +107,61 @@ const EquipmentList = () => {
     }
   };
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await axios.get(`${API}/export/equipments/template`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'template_equipamentos.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Template baixado com sucesso');
+    } catch (error) {
+      toast.error('Erro ao baixar template');
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      toast.error('Selecione um arquivo para importar');
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const response = await axios.post(`${API}/import/equipments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setImportResult(response.data);
+      toast.success(`Importação concluída: ${response.data.success_count} equipamentos importados`);
+      
+      if (response.data.success_count > 0) {
+        fetchEquipments();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao importar equipamentos');
+      setImportResult({ error: error.response?.data?.detail || 'Erro ao importar' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleCloseImportDialog = () => {
+    setImportDialog(false);
+    setImportFile(null);
+    setImportResult(null);
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       'Disponível': 'badge badge-success',
