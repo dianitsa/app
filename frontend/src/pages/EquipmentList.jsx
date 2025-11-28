@@ -343,6 +343,104 @@ const EquipmentList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Dialog */}
+      <Dialog open={importDialog} onOpenChange={handleCloseImportDialog}>
+        <DialogContent className="max-w-2xl" data-testid="import-dialog">
+          <DialogHeader>
+            <DialogTitle>Importar Equipamentos via Excel</DialogTitle>
+            <DialogDescription>
+              Faça upload de uma planilha Excel (.xlsx, .xls) com os dados dos equipamentos
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => setImportFile(e.target.files[0])}
+                className="max-w-xs mx-auto"
+                data-testid="import-file-input"
+              />
+              {importFile && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Arquivo selecionado: {importFile.name}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-sm text-blue-900 mb-2">Instruções:</h4>
+              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <li>Baixe o template Excel para ver o formato correto</li>
+                <li>Preencha todas as colunas obrigatórias</li>
+                <li>Não altere os nomes das colunas</li>
+                <li>Equipamentos com patrimônio duplicado serão ignorados</li>
+              </ul>
+              <Button
+                variant="link"
+                onClick={handleDownloadTemplate}
+                className="mt-2 p-0 h-auto text-blue-600"
+                data-testid="download-template-button"
+              >
+                <FileDown size={16} className="mr-1" />
+                Baixar Template Excel
+              </Button>
+            </div>
+
+            {importResult && (
+              <div className={`border rounded-lg p-4 ${
+                importResult.error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+              }`}>
+                <h4 className={`font-semibold text-sm mb-2 ${
+                  importResult.error ? 'text-red-900' : 'text-green-900'
+                }`}>
+                  Resultado da Importação:
+                </h4>
+                {importResult.error ? (
+                  <p className="text-sm text-red-800">{importResult.error}</p>
+                ) : (
+                  <>
+                    <div className="text-sm space-y-1">
+                      <p className="text-green-800">
+                        ✓ Sucesso: {importResult.success_count} equipamentos importados
+                      </p>
+                      {importResult.error_count > 0 && (
+                        <p className="text-red-800">
+                          ✗ Erros: {importResult.error_count} linhas com erro
+                        </p>
+                      )}
+                    </div>
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-gray-900 mb-1">Detalhes dos erros:</p>
+                        <ul className="text-xs text-gray-700 space-y-1 max-h-32 overflow-y-auto">
+                          {importResult.errors.map((error, idx) => (
+                            <li key={idx}>• {error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseImportDialog} data-testid="cancel-import-button">
+              {importResult ? 'Fechar' : 'Cancelar'}
+            </Button>
+            {!importResult && (
+              <Button onClick={handleImport} disabled={importing || !importFile} data-testid="confirm-import-button">
+                {importing ? 'Importando...' : 'Importar'}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
