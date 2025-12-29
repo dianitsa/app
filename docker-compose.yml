@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: patrimonio_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=patrimonio_local_db
+    networks:
+      - patrimonio_network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  patrimonio_network:
+    driver: bridge
