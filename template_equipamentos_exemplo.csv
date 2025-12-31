@@ -1,0 +1,11 @@
+numero_patrimonio,numero_serie,marca,modelo,tipo_equipamento,departamento_atual,responsavel_atual,status
+PAT-001,SN123456789,Dell,Latitude 5420,Notebook,SEINTEC,João Silva,Disponível
+PAT-002,SN987654321,HP,EliteBook 840,Notebook,PROTOCOLO,Maria Santos,Disponível
+PAT-003,SN456789123,Lenovo,ThinkPad X1,Notebook,SECOMSE,,Disponível
+PAT-004,SN789123456,Dell,OptiPlex 7080,Desktop,SEFIN,Pedro Costa,Em uso
+PAT-005,SN321654987,Samsung,Galaxy S21,Celular,SEGRE,Ana Oliveira,Disponível
+PAT-006,SN654987321,Apple,MacBook Pro,Notebook,AT,,Manutenção
+PAT-007,SN147258369,Acer,Aspire 5,Notebook,URE,Carlos Souza,Disponível
+PAT-008,SN963852741,HP,LaserJet Pro,Impressora,SALA DE INFORMÁTICA,,Disponível
+PAT-009,SN258369147,Dell,Monitor 24,Monitor,VIDEO CONFERENCIA,,Disponível
+PAT-010,SN741852963,Xiaomi,Redmi Note 10,Celular,ESE,Juliana Lima,Disponível
